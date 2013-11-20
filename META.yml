@@ -1,0 +1,42 @@
+---
+abstract: 'Fast and lightweight Perl client for Riak'
+author:
+  - 'Damien Krotkine <dams@cpan.org>'
+  - 'Tiago Peczenyj <tiago.peczenyj@gmail.com>'
+build_requires:
+  File::Spec: 0
+  IO::Handle: 0
+  IPC::Open3: 0
+  Module::Build: 0.3601
+  Test::Exception: 0
+  Test::MockModule: 0
+  Test::MockObject: 0
+  Test::More: 0
+  Test::TCP: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.30
+  Module::Build: 0.3601
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 5.005, CPAN::Meta::Converter version 2.132830'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Riak-Client
+recommends:
+  JSON::XS: 0
+requires:
+  Carp: 0
+  Const::Fast: 0
+  Google::ProtocolBuffers: 0
+  JSON: 0
+  Moo: 0
+  Time::Out: 0
+  Type::Params: 0
+  Types::Standard: 0
+  perl: v5.12.0
+resources:
+  bugtracker: https://github.com/dams/riak-client/issues
+  homepage: https://github.com/dams/riak-client
+  repository: git://github.com/dams/riak-client.git
+version: 0.10
