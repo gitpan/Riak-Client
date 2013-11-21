@@ -1,11 +1,11 @@
 
 
 This archive contains the distribution Riak-Client,
-version 0.10:
+version 0.11:
 
   Fast and lightweight Perl client for Riak
 
-This software is copyright (c) 2013 by Damien Krotkine, Tiago Peczenyj.
+This software is copyright (c) 2013 by Damien Krotkine, Ivan Kruglov, Tiago Peczenyj.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

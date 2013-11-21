@@ -1,7 +1,7 @@
 #
 # This file is part of Riak-Client
 #
-# This software is copyright (c) 2013 by Damien Krotkine, Tiago Peczenyj.
+# This software is copyright (c) 2013 by Damien Krotkine, Ivan Kruglov, Tiago Peczenyj.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the same terms as the Perl 5 programming language system itself.
@@ -9,7 +9,7 @@
 ## no critic (RequireUseStrict, RequireUseWarnings)
 package Riak::Client::Driver;
 {
-  $Riak::Client::Driver::VERSION = '0.10';
+  $Riak::Client::Driver::VERSION = '0.11';
 }
 ## use critic
 
@@ -30,7 +30,7 @@ sub _build_connector {
 sub perform_request {
     my ( $self, $request_code, $request_body ) = @_;
     $self->connector->perform_request(
-      pack( 'c a*', $request_code, $request_body )
+      pack( 'c a*', $request_code, $request_body // '' )
     );
 }
 
@@ -58,7 +58,7 @@ Riak::Client::Driver - Riak Driver, deal with the binary protocol
 
 =head1 VERSION
 
-version 0.10
+version 0.11
 
 =head1 DESCRIPTION
 
@@ -76,11 +76,15 @@ Damien Krotkine <dams@cpan.org>
 
 Tiago Peczenyj <tiago.peczenyj@gmail.com>
 
+=item *
+
+Ivan Kruglov <ivan.kruglov@yahoo.com>
+
 =back
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Damien Krotkine, Tiago Peczenyj.
+This software is copyright (c) 2013 by Damien Krotkine, Ivan Kruglov, Tiago Peczenyj.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

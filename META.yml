@@ -3,6 +3,7 @@ abstract: 'Fast and lightweight Perl client for Riak'
 author:
   - 'Damien Krotkine <dams@cpan.org>'
   - 'Tiago Peczenyj <tiago.peczenyj@gmail.com>'
+  - 'Ivan Kruglov <ivan.kruglov@yahoo.com>'
 build_requires:
   File::Spec: 0
   IO::Handle: 0
@@ -39,4 +40,4 @@ resources:
   bugtracker: https://github.com/dams/riak-client/issues
   homepage: https://github.com/dams/riak-client
   repository: git://github.com/dams/riak-client.git
-version: 0.10
+version: 0.11

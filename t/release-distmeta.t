@@ -2,7 +2,7 @@
 #
 # This file is part of Riak-Client
 #
-# This software is copyright (c) 2013 by Damien Krotkine, Tiago Peczenyj.
+# This software is copyright (c) 2013 by Damien Krotkine, Ivan Kruglov, Tiago Peczenyj.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the same terms as the Perl 5 programming language system itself.

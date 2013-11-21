@@ -16,10 +16,11 @@ my %module_build_args = (
   "dist_abstract" => "Fast and lightweight Perl client for Riak",
   "dist_author" => [
     "Damien Krotkine <dams\@cpan.org>",
-    "Tiago Peczenyj <tiago.peczenyj\@gmail.com>"
+    "Tiago Peczenyj <tiago.peczenyj\@gmail.com>",
+    "Ivan Kruglov <ivan.kruglov\@yahoo.com>"
   ],
   "dist_name" => "Riak-Client",
-  "dist_version" => "0.10",
+  "dist_version" => "0.11",
   "license" => "perl",
   "module_name" => "Riak::Client",
   "recommends" => {

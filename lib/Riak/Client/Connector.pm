@@ -1,17 +1,18 @@
 #
 # This file is part of Riak-Client
 #
-# This software is copyright (c) 2013 by Damien Krotkine, Tiago Peczenyj.
+# This software is copyright (c) 2013 by Damien Krotkine, Ivan Kruglov, Tiago Peczenyj.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the same terms as the Perl 5 programming language system itself.
 #
 package Riak::Client::Connector;
 {
-  $Riak::Client::Connector::VERSION = '0.10';
+  $Riak::Client::Connector::VERSION = '0.11';
 }
 
 use Moo;
+use Errno qw(EINTR);
 use Types::Standard -types;
 require bytes;
 
@@ -49,40 +50,48 @@ sub _send_all {
     my $length = bytes::length($bytes);
     my $offset = 0;
     my $sent = 0;
-    do {
+
+    while ($length > 0) {
         $sent = $self->socket->syswrite( $bytes, $length, $offset );
+        if (! defined $sent) {
+            $! == EINTR
+              and next;
+            return;
+        }
 
-        # error in $!
-        return unless defined $sent;
-
-        # TODO test if $sent == 0 and $! EAGAIN, EWOULDBLOCK, ETC...
-        return unless $sent;
+        $sent > 0
+          or return;
 
         $offset += $sent;
-    } while ( $offset < $length );
+        $length -= $sent;
+    }
 
-    $offset;
+    return $offset;
 }
 
 sub _read_all {
-    my ( $self, $bufsiz ) = @_;
+    my ( $self, $length ) = @_;
 
     my $buffer;
     my $offset = 0;
     my $read = 0;
-    do {
-        $read = $self->socket->sysread( $buffer, $bufsiz, $offset );
 
-        # error in $!
-        return unless defined $read;
+    while ($length > 0) {
+        $read = $self->socket->sysread( $buffer, $length, $offset );
+        if (! defined $read) {
+            $! == EINTR
+              and next;
+            return;
+        }
 
-        # test if $read == 0 and $! EAGAIN, EWOULDBLOCK, ETC...
-        return unless $read;
+        $read > 0
+          or return;
 
         $offset += $read;
-    } while ( $offset < $bufsiz );
+        $length -= $read;
+    }
 
-    $buffer;
+    return $buffer;
 }
 
 1;
@@ -99,7 +108,7 @@ Riak::Client::Connector - Riak Connector, abstraction to deal with binary messag
 
 =head1 VERSION
 
-version 0.10
+version 0.11
 
 =head1 AUTHORS
 
@@ -113,11 +122,15 @@ Damien Krotkine <dams@cpan.org>
 
 Tiago Peczenyj <tiago.peczenyj@gmail.com>
 
+=item *
+
+Ivan Kruglov <ivan.kruglov@yahoo.com>
+
 =back
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Damien Krotkine, Tiago Peczenyj.
+This software is copyright (c) 2013 by Damien Krotkine, Ivan Kruglov, Tiago Peczenyj.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

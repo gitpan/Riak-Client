@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.30;
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Fast and lightweight Perl client for Riak",
-  "AUTHOR" => "Damien Krotkine <dams\@cpan.org>, Tiago Peczenyj <tiago.peczenyj\@gmail.com>",
+  "AUTHOR" => "Damien Krotkine <dams\@cpan.org>, Tiago Peczenyj <tiago.peczenyj\@gmail.com>, Ivan Kruglov <ivan.kruglov\@yahoo.com>",
   "BUILD_REQUIRES" => {
     "Module::Build" => "0.3601"
   },
@@ -42,7 +42,7 @@ my %WriteMakefileArgs = (
     "Test::More" => 0,
     "Test::TCP" => 0
   },
-  "VERSION" => "0.10",
+  "VERSION" => "0.11",
   "test" => {
     "TESTS" => "t/*.t"
   }
