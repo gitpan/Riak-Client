@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use 5.012000;
+use 5.010;
 
 use ExtUtils::MakeMaker 6.30;
 
@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.30;
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Fast and lightweight Perl client for Riak",
-  "AUTHOR" => "Damien Krotkine <dams\@cpan.org>, Tiago Peczenyj <tiago.peczenyj\@gmail.com>, Ivan Kruglov <ivan.kruglov\@yahoo.com>",
+  "AUTHOR" => "Damien Krotkine <dams\@cpan.org>",
   "BUILD_REQUIRES" => {
     "Module::Build" => "0.3601"
   },
@@ -26,7 +26,7 @@ my %WriteMakefileArgs = (
     "Carp" => 0,
     "Const::Fast" => 0,
     "Google::ProtocolBuffers" => 0,
-    "JSON" => 0,
+    "JSON::XS" => 0,
     "Moo" => 0,
     "Time::Out" => 0,
     "Type::Params" => 0,
@@ -36,13 +36,11 @@ my %WriteMakefileArgs = (
     "File::Spec" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
+    "Test::Differences" => 0,
     "Test::Exception" => 0,
-    "Test::MockModule" => 0,
-    "Test::MockObject" => 0,
-    "Test::More" => 0,
-    "Test::TCP" => 0
+    "Test::More" => 0
   },
-  "VERSION" => "0.11",
+  "VERSION" => "1.90",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -56,14 +54,12 @@ my %FallbackPrereqs = (
   "Google::ProtocolBuffers" => 0,
   "IO::Handle" => 0,
   "IPC::Open3" => 0,
-  "JSON" => 0,
+  "JSON::XS" => 0,
   "Module::Build" => "0.3601",
   "Moo" => 0,
+  "Test::Differences" => 0,
   "Test::Exception" => 0,
-  "Test::MockModule" => 0,
-  "Test::MockObject" => 0,
   "Test::More" => 0,
-  "Test::TCP" => 0,
   "Time::Out" => 0,
   "Type::Params" => 0,
   "Types::Standard" => 0

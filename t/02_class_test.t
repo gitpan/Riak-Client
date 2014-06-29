@@ -9,28 +9,30 @@ dies_ok { Riak::Client->new( port => 8087 ) } "should ask for host";
 subtest "new and default attrs values" => sub {
     my $client = new_ok(
         'Riak::Client' => [
-            host    => '127.0.0.1',
-            port    => 9087,
-            driver  => undef
+            host            => '127.0.0.1',
+            port            => 9087,
+ 	    no_auto_connect => 1
         ],
         "a new client"
     );
-    is( $client->connection_timeout, 0.5, "default timeout should be 0.5" );
+    is( $client->connection_timeout, 5, "default timeout should be 0.5" );
+    is( $client->read_timeout, 5, "default timeout should be 0.5" );
+    is( $client->write_timeout, 5, "default timeout should be 0.5" );
     is( $client->r,       2,   "default r  should be 2" );
     is( $client->w,       2,   "default w  should be 2" );
-    is( $client->dw,      2,   "default dw should be 2" );
+    is( $client->dw,      1,   "default dw should be 1" );
 };
 
 subtest "new and other attrs values" => sub {
     my $client = new_ok(
         'Riak::Client' => [
-            host             => '127.0.0.1',
-            port             => 9087,
-            connection_timeout          => 0.2,
-            r                => 1,
-            w                => 1,
-            dw               => 1,
-            driver           => undef,
+            host               => '127.0.0.1',
+            port               => 9087,
+            connection_timeout => 0.2,
+            r                  => 1,
+            w                  => 1,
+            dw                 => 1,
+            no_auto_connect    => 1
         ],
         "a new client"
     );
@@ -42,7 +44,7 @@ subtest "new and other attrs values" => sub {
 
 subtest "should be a riak::light instance" => sub {
     isa_ok(
-        Riak::Client->new( host => 'host', port => 9999, driver => undef ),
+        Riak::Client->new( host => 'host', port => 9999, no_auto_connect => 1),
         'Riak::Client'
     );
   }

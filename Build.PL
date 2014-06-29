@@ -15,39 +15,33 @@ my %module_build_args = (
   },
   "dist_abstract" => "Fast and lightweight Perl client for Riak",
   "dist_author" => [
-    "Damien Krotkine <dams\@cpan.org>",
-    "Tiago Peczenyj <tiago.peczenyj\@gmail.com>",
-    "Ivan Kruglov <ivan.kruglov\@yahoo.com>"
+    "Damien Krotkine <dams\@cpan.org>"
   ],
   "dist_name" => "Riak-Client",
-  "dist_version" => "0.11",
+  "dist_version" => "1.90",
   "license" => "perl",
   "module_name" => "Riak::Client",
-  "recommends" => {
-    "JSON::XS" => 0
-  },
+  "recommends" => {},
   "recursive_test_files" => 1,
   "requires" => {
     "Carp" => 0,
     "Const::Fast" => 0,
     "Google::ProtocolBuffers" => 0,
-    "JSON" => 0,
+    "JSON::XS" => 0,
     "Moo" => 0,
     "Time::Out" => 0,
     "Type::Params" => 0,
     "Types::Standard" => 0,
-    "perl" => "v5.12.0"
+    "perl" => "5.010"
   },
   "script_files" => [],
   "test_requires" => {
     "File::Spec" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
+    "Test::Differences" => 0,
     "Test::Exception" => 0,
-    "Test::MockModule" => 0,
-    "Test::MockObject" => 0,
-    "Test::More" => 0,
-    "Test::TCP" => 0
+    "Test::More" => 0
   }
 );
 
@@ -57,11 +51,9 @@ my %fallback_build_requires = (
   "IO::Handle" => 0,
   "IPC::Open3" => 0,
   "Module::Build" => "0.3601",
+  "Test::Differences" => 0,
   "Test::Exception" => 0,
-  "Test::MockModule" => 0,
-  "Test::MockObject" => 0,
-  "Test::More" => 0,
-  "Test::TCP" => 0
+  "Test::More" => 0
 );
 
 

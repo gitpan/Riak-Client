@@ -3,14 +3,12 @@ use warnings;
 
 # this test was generated with Dist::Zilla::Plugin::Test::Compile 2.037
 
-use Test::More  tests => 4 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
+use Test::More  tests => 2 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
 
 
 my @module_files = (
     'Riak/Client.pm',
-    'Riak/Client/Connector.pm',
-    'Riak/Client/Driver.pm',
     'Riak/Client/PBC.pm'
 );
 
