@@ -18,7 +18,7 @@ my %module_build_args = (
     "Damien Krotkine <dams\@cpan.org>"
   ],
   "dist_name" => "Riak-Client",
-  "dist_version" => "1.90",
+  "dist_version" => "1.91",
   "license" => "perl",
   "module_name" => "Riak::Client",
   "recommends" => {},
@@ -27,6 +27,7 @@ my %module_build_args = (
     "Carp" => 0,
     "Const::Fast" => 0,
     "Google::ProtocolBuffers" => 0,
+    "IO::Socket::Timeout" => 0,
     "JSON::XS" => 0,
     "Moo" => 0,
     "Time::Out" => 0,

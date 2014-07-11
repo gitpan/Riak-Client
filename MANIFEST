@@ -5,7 +5,7 @@ MANIFEST
 META.yml
 Makefile.PL
 README
-README.md
+README.pod
 dist.ini
 lib/Riak/Client.pm
 lib/Riak/Client/PBC.pm
@@ -17,5 +17,6 @@ t/03_real_riak_test.t
 t/04_real_riak_test2.t
 t/15_secondary_indexes.t
 t/16_map_reduce.t
+t/17_map_reduce_2.t
 t/release-distmeta.t
 t/release-pod-coverage.t
