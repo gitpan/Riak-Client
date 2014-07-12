@@ -2,7 +2,7 @@ NAME
     Riak::Client - Fast and lightweight Perl client for Riak
 
 VERSION
-    version 1.91
+    version 1.92
 
 SYNOPSIS
       use Riak::Client;
@@ -362,6 +362,9 @@ SEE ALSO
     Riak::Light
 
     AnyEvent
+
+CONTRIBUTORS
+    Ivan Kruglov <ivan.kruglov@yahoo.com>
 
 AUTHOR
     Damien Krotkine <dams@cpan.org>

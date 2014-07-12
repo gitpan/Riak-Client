@@ -23,6 +23,8 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Riak::Client",
   "PREREQ_PM" => {
+    "AnyEvent" => 0,
+    "AnyEvent::Handle" => 0,
     "Carp" => 0,
     "Const::Fast" => 0,
     "Google::ProtocolBuffers" => 0,
@@ -41,7 +43,7 @@ my %WriteMakefileArgs = (
     "Test::Exception" => 0,
     "Test::More" => 0
   },
-  "VERSION" => "1.91",
+  "VERSION" => "1.92",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -49,6 +51,8 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "AnyEvent" => 0,
+  "AnyEvent::Handle" => 0,
   "Carp" => 0,
   "Const::Fast" => 0,
   "File::Spec" => 0,

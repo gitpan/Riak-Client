@@ -9,7 +9,7 @@
 ## no critic (RequireUseStrict, RequireUseWarnings)
 package Riak::Client;
 {
-  $Riak::Client::VERSION = '1.91';
+  $Riak::Client::VERSION = '1.92';
 }
 ## use critic
 
@@ -466,7 +466,7 @@ sub _handle_get_response {
     my $content_type = $content->[0]->content_type;
 
     # if we need to decode
-    $args->{decode} && $content_type eq 'application/json'
+    $args->{decode} && ($content_type // '') eq 'application/json'
       and return \decode_json($value);
 
     # simply return the value
@@ -905,7 +905,7 @@ Riak::Client - Fast and lightweight Perl client for Riak
 
 =head1 VERSION
 
-version 1.91
+version 1.92
 
 =head1 SYNOPSIS
 
@@ -1290,6 +1290,10 @@ L<Action::Retry>
 L<Riak::Light>
 
 L<AnyEvent>
+
+=head1 CONTRIBUTORS
+
+Ivan Kruglov <ivan.kruglov@yahoo.com>
 
 =head1 AUTHOR
 

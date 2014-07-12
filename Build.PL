@@ -18,12 +18,14 @@ my %module_build_args = (
     "Damien Krotkine <dams\@cpan.org>"
   ],
   "dist_name" => "Riak-Client",
-  "dist_version" => "1.91",
+  "dist_version" => "1.92",
   "license" => "perl",
   "module_name" => "Riak::Client",
   "recommends" => {},
   "recursive_test_files" => 1,
   "requires" => {
+    "AnyEvent" => 0,
+    "AnyEvent::Handle" => 0,
     "Carp" => 0,
     "Const::Fast" => 0,
     "Google::ProtocolBuffers" => 0,

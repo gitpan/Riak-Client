@@ -21,6 +21,8 @@ meta-spec:
   version: 1.4
 name: Riak-Client
 requires:
+  AnyEvent: 0
+  AnyEvent::Handle: 0
   Carp: 0
   Const::Fast: 0
   Google::ProtocolBuffers: 0
@@ -35,4 +37,4 @@ resources:
   bugtracker: https://github.com/dams/riak-client/issues
   homepage: https://github.com/dams/riak-client
   repository: git://github.com/dams/riak-client.git
-version: 1.91
+version: 1.92
