@@ -8,7 +8,7 @@
 #
 package Riak::Client::PBC;
 {
-  $Riak::Client::PBC::VERSION = '1.92';
+  $Riak::Client::PBC::VERSION = '1.93';
 }
 
 ##
@@ -656,7 +656,7 @@ Riak::Client::PBC
 
 =head1 VERSION
 
-version 1.92
+version 1.93
 
 =head1 AUTHOR
 

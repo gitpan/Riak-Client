@@ -2,7 +2,7 @@ NAME
     Riak::Client - Fast and lightweight Perl client for Riak
 
 VERSION
-    version 1.92
+    version 1.93
 
 SYNOPSIS
       use Riak::Client;
