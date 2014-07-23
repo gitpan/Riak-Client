@@ -9,7 +9,7 @@
 ## no critic (RequireUseStrict, RequireUseWarnings)
 package Riak::Client;
 {
-  $Riak::Client::VERSION = '1.93';
+  $Riak::Client::VERSION = '1.94';
 }
 ## use critic
 
@@ -21,6 +21,7 @@ use Errno qw(EINTR);
 use Scalar::Util qw(blessed);
 use JSON::XS;
 use Carp;
+$Carp::Internal{ (__PACKAGE__) }++;
 use Module::Runtime qw(use_module);
 require bytes;
 use Moo;
@@ -97,32 +98,21 @@ sub _build__handle {
 
     weaken $self;
 
-    my $handle;
-
-    my $on_error_handle = sub {
-        $handle->destroy; # explicitly destroy handle
-        my $command = $self->{_req_command} // "<unknown>";
-        my $bucket = $self->{_req_bucket} // "<unknown>";
-        my $key = $self->{_req_key} // "<unknown>";
-        croak("Error ($_[2]) on $host:$port, while performing: command '$command' on bucket '$bucket' and key '$key'");
-    };
-    weaken $on_error_handle;
-
-
     # TODO = timeouts
-    $handle = AnyEvent::Handle->new (
+    AnyEvent::Handle->new (
       connect  => [$host, $port],
       no_delay => $self->no_delay(),
-      on_error => $on_error_handle,
+      on_error => sub {
+        $_[0]->destroy; # explicitly destroy handle
+
+        _die_generic_error("on host $host:$port: $_[2]", $self->_current_request_ae_args->[0] // {});
+    },
 #      rtimeout => $self->read_timeout,
 #      wtimeout => $self->write_timeout,
 #      on_prepare => sub { $self->connection_timeout },
       on_connect => sub { $self->_cv_connected->send },
 #      on_timeout => sub { print STDERR " ---- PLOP \n";},
     );
-
-
-    $handle;
 
 }
 
@@ -179,7 +169,8 @@ sub _build__handle_reader_callback {
         $lock and $lock->send();
     
         # if no user callback provided, use the $cv and return.
-        $args->{cv} and $args->{cv}->send($ret),
+        !$args->{cb}
+          and $args->{cv}->send($ret),
           return;
     
         # If $ret is undef, means everything has been processed and
@@ -245,20 +236,27 @@ sub BUILD {
 
 
 sub connect {
-    my ($self) = @_;
+    state $check = compile(Any, Optional[CodeRef]);
+    my ( $self, $cb ) = $check->(@_);
 
-    $self->ae
-      or $self->_socket(),
-         return 1;
+    if ( ! $self->ae ) {
+        $self->_socket();
+        if ($cb) {
+            $cb->();
+        } else {
+            return 1;
+        }
+    } else {
 
-    $self->_handle();
-    if (my $cb = ref $_[-1] eq 'CODE' ? $_[-1] : undef) {
-        $self->_cv_connected->cb($cb);
-        return;
+        $self->_handle();
+        if (my $cb = ref $_[-1] eq 'CODE' ? $_[-1] : undef) {
+            $self->_cv_connected->cb($cb);
+            return;
+        }
+
+        $self->_cv_connected->recv;
+        return 1;
     }
-
-    $self->_cv_connected->recv;
-    return 1;
 
 }
 
@@ -813,7 +811,7 @@ sub _parse_response_ae {
     $self->_handle->push_read( chunk => 4, $self->_handle_reader_callback);
 
     # we were given a user callback, don't be synchronous, immediately return.
-    $cv or return;
+    $args->{cb} and return;
 
     # no user callback, let's be synchronous
     my $res = $cv->recv();
@@ -835,7 +833,12 @@ sub _die_generic_error {
     defined $bucket && defined $key
       and $extra = "(bucket: $bucket, key: $key) ";
 
-    croak "Error in '$operation_name' $extra: $error";
+    my $msg = "Error in '$operation_name' $extra: $error";
+    if (my $cv = $args->{cv}) {
+        $cv->croak($msg);
+    } else {
+        croak $msg;
+    }
 }
 
 sub _read_response {
@@ -912,7 +915,7 @@ Riak::Client - Fast and lightweight Perl client for Riak
 
 =head1 VERSION
 
-version 1.93
+version 1.94
 
 =head1 SYNOPSIS
 
@@ -982,8 +985,8 @@ version 1.93
 Riak::Client is a fast and light Perl client for Riak using PBC interface, with
 optional AnyEvent mode.
 
-It supports operations like ping, get, exists, put, del, and secondary indexes
-(so-called 2i) setting and querying.
+It supports operations like ping, get, exists, put, del, secondary indexes
+(so-called 2i) setting and querying, and Map Reduce querying.
 
 It has two modes, a traditional procedural mode, and an event based mode, using
 AnyEvent.
@@ -1048,56 +1051,101 @@ instance will be synchronous.
 
 =head2 connect
 
-  my $client->connect();
+  $client->connect();
+  $client->connect($coderef);
 
-  # or in AnyEvent mode
+Connects to the Riak server. On error, will raise an exception. This is
+automatically done when C<new()> is called, unless the C<no_auto_connect>
+attribute is set to true. Accepts an optional callback, that will be executed
+when connected.
+
+  # example in AnyEvent mode
   $cv = AE::cv;
   $client->connect(sub { print "connected!\n"; $cv->send(); });
-  $cv->recv();
-
-Connects to the Riak server. This is automatically done when C<new()> is
-called, unless the C<no_auto_connect> attribute is set to true. In AnyEvent
-mode, returns a conditional variable,that will be triggered when connected.
-
-=head2 ping
-
-  use Try::Tiny;
-  try { $client->ping() } catch { "oops... something is wrong: $_" };
-
-Perform a ping operation. Will die in case of error. See C<is_alive()>
-
-=head2 is_alive
-
-  $client->is_alive() or warn "oops... something is wrong: $@";
-
-Perform a ping operation. Will return false in case of error (which will be stored in $@).
-
-=head2 get
-
-  # blocking mode
-  my $value = $client->get(bucket => 'key');
-
-  # blocking mode, with a callback
-  $client->get(bucket => 'key', sub { my ($value) = @_; do_stuff($value) });
-
-  # AnyEvent mode, asynchronous
-  $cv = AE::cv;
-  $client->get(bucket => 'key', sub { my ($value) = @_; do_stuff($value); $cv->send() });
   # ...
   $cv->recv();
 
-Perform a fetch operation. Expects bucket and key names. If the content_type of
-the fetched value is 'application/json', automatically decodes the JSON into a
-Perl structure. If you need the raw data you can use C<get_raw>.
+=head2 ping
+
+ my $result = $client->ping();
+ $client->ping($coderef);
+
+Performs a ping operation. On error, will raise an exception. Accepts an
+optional callback, that will be executed upon completion
+
+  # example in AnyEvent mode
+  $cv = AE::cv;
+  $client->ping(sub { print "got $_[0] \n"; $cv->send(); });
+  # ...
+  $cv->recv();
+
+  # an other example
+  use Try::Tiny;
+  try { $client->ping() } catch { "oops... something is wrong: $_" };
+
+See also C<is_alive()>.
+
+=head2 is_alive
+
+ my $is_alive = $client->is_alive();
+ $client->is_alive($coderef);
+
+Checks if the connection is alive. Returns true or false. On error, will raise
+an exception. Accepts an optional callback, that will be executed upon
+completion. Even in AnyEvent mode, this operation is synchronous.
+
+  # example in AnyEvent mode
+  $cv = AE::cv;
+  $client->is_alive(sub { print($_[0] ? "alive\n" : "dead\n"); $cv->send(); });
+  # ...
+  $cv->recv();
+
+=head2 get
+
+  my $value = $client->get($bucket, $key);
+  $client->get($bucket, $key, $coderef);
+
+  # example in AnyEvent mode
+  $cv = AE::cv;
+  $client->get('bucket', 'key', sub { do_stuff_with_value($_[0]); $cv->send() });
+  # ...
+  $cv->recv();
+
+Performs a fetch operation. Expects bucket and key names. Returns the value. On
+error, will raise an exception. Accepts an optional callback, that will be
+called upon completion, with the value as first argument. If the content_type
+of the fetched value is C<'application/json'>, automatically decodes the JSON
+into a Perl structure. If you need the raw data you can use C<get_raw>.
 
 =head2 get_raw
 
-  my $scalar_value = $client->get_raw(bucket => 'key');
+  my $value = $client->get_raw($bucket, $key);
+  $client->get_raw($bucket, $key, $coderef);
 
-Perform a fetch operation. Expects bucket and key names. Returns the raw data.
-If you want json to be automatically decoded, you should use C<get()> instead.
+Same as C<get>, but no automatic JSON decoding will be performed. If you want
+JSON to be automatically decoded, you should use C<get()> instead.
 
 =head2 put
+
+  $client->put($bucket, $key, $value);
+  $client->put($bucket, $key, $value, $coderef);
+  $client->put($bucket, $key, $value, $mime_type, $coderef);
+  $client->put($bucket, $key, $value, $mime_type, $secondary_indexes, $coderef);
+  $client->put($bucket, $key, $value, $mime_type, $secondary_indexes, $links, $coderef);
+
+Performs a store operation. Expects bucket and key names, the value, the
+content type (optional, default is 'application/json'), the indexes to set for
+this value (optional, default is none), the links to set for this value
+(optional, default is none), and an optional coderef. On error, will raise an
+exception
+
+Will encode the structure in json string if necessary. If you need to store the
+raw data you should use C<put_raw> instead.
+
+B<IMPORTANT>: all the index field names should end by either C<_int> or
+C<_bin>, depending if the index type is integer or binary.
+
+To query secondary indexes, see C<query_index>.
 
   $client->put('bucket', 'key', { some_values => [1,2,3] });
   $client->put('bucket', 'key', { some_values => [1,2,3] }, 'application/json);
@@ -1132,17 +1180,15 @@ If you want json to be automatically decoded, you should use C<get()> instead.
                 ],
               );
 
-Perform a store operation. Expects bucket and key names, the value, the content
-type (optional, default is 'application/json'), and the indexes to set for this
-value (optional, default is none).
-
-Will encode the structure in json string if necessary. If you need only store
-the raw data you can use C<put_raw> instead.
-
-B<IMPORTANT>: all the index field names should end by either C<_int> or
-C<_bin>, depending if the index type is integer or binary.
-
-To query secondary indexes, see C<query_index>.
+  # example in AnyEvent mode
+  $cv = AE::cv;
+  $client->put( 'bucket', 'key', 'some_text', 'plain/text',
+                { field1_bin => 'abc', field2_int => 42 },
+                { next_key => 'bucket2/foo'},
+                sub { print "data is sent to Riak\n"; $cv->send() },
+              );
+  # ...
+  $cv->recv();
 
 =head2 put_raw
 

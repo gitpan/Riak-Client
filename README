@@ -2,7 +2,7 @@ NAME
     Riak::Client - Fast and lightweight Perl client for Riak
 
 VERSION
-    version 1.93
+    version 1.94
 
 SYNOPSIS
       use Riak::Client;
@@ -70,8 +70,8 @@ DESCRIPTION
     Riak::Client is a fast and light Perl client for Riak using PBC
     interface, with optional AnyEvent mode.
 
-    It supports operations like ping, get, exists, put, del, and secondary
-    indexes (so-called 2i) setting and querying.
+    It supports operations like ping, get, exists, put, del, secondary
+    indexes (so-called 2i) setting and querying, and Map Reduce querying.
 
     It has two modes, a traditional procedural mode, and an event based
     mode, using AnyEvent.
@@ -126,56 +126,98 @@ ATTRIBUTES
 
 METHODS
   connect
-      my $client->connect();
+      $client->connect();
+      $client->connect($coderef);
 
-      # or in AnyEvent mode
+    Connects to the Riak server. On error, will raise an exception. This is
+    automatically done when "new()" is called, unless the "no_auto_connect"
+    attribute is set to true. Accepts an optional callback, that will be
+    executed when connected.
+
+      # example in AnyEvent mode
       $cv = AE::cv;
       $client->connect(sub { print "connected!\n"; $cv->send(); });
-      $cv->recv();
-
-    Connects to the Riak server. This is automatically done when "new()" is
-    called, unless the "no_auto_connect" attribute is set to true. In
-    AnyEvent mode, returns a conditional variable,that will be triggered
-    when connected.
-
-  ping
-      use Try::Tiny;
-      try { $client->ping() } catch { "oops... something is wrong: $_" };
-
-    Perform a ping operation. Will die in case of error. See "is_alive()"
-
-  is_alive
-      $client->is_alive() or warn "oops... something is wrong: $@";
-
-    Perform a ping operation. Will return false in case of error (which will
-    be stored in $@).
-
-  get
-      # blocking mode
-      my $value = $client->get(bucket => 'key');
-
-      # blocking mode, with a callback
-      $client->get(bucket => 'key', sub { my ($value) = @_; do_stuff($value) });
-
-      # AnyEvent mode, asynchronous
-      $cv = AE::cv;
-      $client->get(bucket => 'key', sub { my ($value) = @_; do_stuff($value); $cv->send() });
       # ...
       $cv->recv();
 
-    Perform a fetch operation. Expects bucket and key names. If the
-    content_type of the fetched value is 'application/json', automatically
-    decodes the JSON into a Perl structure. If you need the raw data you can
-    use "get_raw".
+  ping
+     my $result = $client->ping();
+     $client->ping($coderef);
+
+    Performs a ping operation. On error, will raise an exception. Accepts an
+    optional callback, that will be executed upon completion
+
+      # example in AnyEvent mode
+      $cv = AE::cv;
+      $client->ping(sub { print "got $_[0] \n"; $cv->send(); });
+      # ...
+      $cv->recv();
+
+      # an other example
+      use Try::Tiny;
+      try { $client->ping() } catch { "oops... something is wrong: $_" };
+
+    See also "is_alive()".
+
+  is_alive
+     my $is_alive = $client->is_alive();
+     $client->is_alive($coderef);
+
+    Checks if the connection is alive. Returns true or false. On error, will
+    raise an exception. Accepts an optional callback, that will be executed
+    upon completion. Even in AnyEvent mode, this operation is synchronous.
+
+      # example in AnyEvent mode
+      $cv = AE::cv;
+      $client->is_alive(sub { print($_[0] ? "alive\n" : "dead\n"); $cv->send(); });
+      # ...
+      $cv->recv();
+
+  get
+      my $value = $client->get($bucket, $key);
+      $client->get($bucket, $key, $coderef);
+
+      # example in AnyEvent mode
+      $cv = AE::cv;
+      $client->get('bucket', 'key', sub { do_stuff_with_value($_[0]); $cv->send() });
+      # ...
+      $cv->recv();
+
+    Performs a fetch operation. Expects bucket and key names. Returns the
+    value. On error, will raise an exception. Accepts an optional callback,
+    that will be called upon completion, with the value as first argument.
+    If the content_type of the fetched value is 'application/json',
+    automatically decodes the JSON into a Perl structure. If you need the
+    raw data you can use "get_raw".
 
   get_raw
-      my $scalar_value = $client->get_raw(bucket => 'key');
+      my $value = $client->get_raw($bucket, $key);
+      $client->get_raw($bucket, $key, $coderef);
 
-    Perform a fetch operation. Expects bucket and key names. Returns the raw
-    data. If you want json to be automatically decoded, you should use
-    "get()" instead.
+    Same as "get", but no automatic JSON decoding will be performed. If you
+    want JSON to be automatically decoded, you should use "get()" instead.
 
   put
+      $client->put($bucket, $key, $value);
+      $client->put($bucket, $key, $value, $coderef);
+      $client->put($bucket, $key, $value, $mime_type, $coderef);
+      $client->put($bucket, $key, $value, $mime_type, $secondary_indexes, $coderef);
+      $client->put($bucket, $key, $value, $mime_type, $secondary_indexes, $links, $coderef);
+
+    Performs a store operation. Expects bucket and key names, the value, the
+    content type (optional, default is 'application/json'), the indexes to
+    set for this value (optional, default is none), the links to set for
+    this value (optional, default is none), and an optional coderef. On
+    error, will raise an exception
+
+    Will encode the structure in json string if necessary. If you need to
+    store the raw data you should use "put_raw" instead.
+
+    IMPORTANT: all the index field names should end by either "_int" or
+    "_bin", depending if the index type is integer or binary.
+
+    To query secondary indexes, see "query_index".
+
       $client->put('bucket', 'key', { some_values => [1,2,3] });
       $client->put('bucket', 'key', { some_values => [1,2,3] }, 'application/json);
       $client->put('bucket', 'key', 'text', 'plain/text');
@@ -209,17 +251,15 @@ METHODS
                     ],
                   );
 
-    Perform a store operation. Expects bucket and key names, the value, the
-    content type (optional, default is 'application/json'), and the indexes
-    to set for this value (optional, default is none).
-
-    Will encode the structure in json string if necessary. If you need only
-    store the raw data you can use "put_raw" instead.
-
-    IMPORTANT: all the index field names should end by either "_int" or
-    "_bin", depending if the index type is integer or binary.
-
-    To query secondary indexes, see "query_index".
+      # example in AnyEvent mode
+      $cv = AE::cv;
+      $client->put( 'bucket', 'key', 'some_text', 'plain/text',
+                    { field1_bin => 'abc', field2_int => 42 },
+                    { next_key => 'bucket2/foo'},
+                    sub { print "data is sent to Riak\n"; $cv->send() },
+                  );
+      # ...
+      $cv->recv();
 
   put_raw
       $client->put_raw('bucket', 'key', encode_json({ some_values => [1,2,3] }), 'application/json');

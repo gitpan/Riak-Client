@@ -37,4 +37,4 @@ resources:
   bugtracker: https://github.com/dams/riak-client/issues
   homepage: https://github.com/dams/riak-client
   repository: git://github.com/dams/riak-client.git
-version: 1.93
+version: 1.94
